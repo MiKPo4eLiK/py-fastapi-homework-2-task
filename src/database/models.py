@@ -9,7 +9,7 @@ from sqlalchemy import Enum as SQLAlchemyEnum
 
 class Base(DeclarativeBase):
     @classmethod
-    def default_order_by(cls):
+    def default_order_by(cls) -> None:
         return None
 
 

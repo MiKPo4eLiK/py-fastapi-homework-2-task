@@ -9,16 +9,19 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy import func
 from datetime import date, timedelta
-
-from database.session_postgresql import get_db
-from database.models import (
+from sqlalchemy.orm import (
+    selectinload,
+    joinedload,
+)
+from src.database.session_postgresql import get_db
+from src.database.models import (
     MovieModel,
     GenreModel,
     ActorModel,
     CountryModel,
     LanguageModel,
 )
-from schemas.movies import (
+from src.schemas.movies import (
     MovieShort,
     MovieFull,
     MovieCreate,
@@ -55,7 +58,7 @@ async def list_movies(
     if not movies:
         raise HTTPException(status_code=404, detail="No movies found.")
 
-    base_url = "/movies/"
+    base_url = "/theater/movies/"
     prev_page = (
         f"{base_url}?page={page-1}&per_page={per_page}" if page > 1 else None
     )
@@ -80,10 +83,10 @@ async def get_movie(movie_id: int, db: AsyncSession = Depends(get_db)):
         select(MovieModel)
         .where(MovieModel.id == movie_id)
         .options(
-            MovieModel.country,
-            MovieModel.genres,
-            MovieModel.actors,
-            MovieModel.languages,
+            joinedload(MovieModel.country),
+            selectinload(MovieModel.genres),
+            selectinload(MovieModel.actors),
+            selectinload(MovieModel.languages)
         )
     )
     movie = result.scalar_one_or_none()
@@ -194,5 +197,5 @@ async def delete_movie(movie_id: int, db: AsyncSession = Depends(get_db)):
         raise HTTPException(
             status_code=404, detail="Movie with the given ID was not found."
         )
-    await db.delete(movie)
+    db.delete(movie)
     await db.commit()

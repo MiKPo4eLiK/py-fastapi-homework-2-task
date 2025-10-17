@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 from typing import List, Optional
 from pydantic import BaseModel, Field, validator
 from enum import Enum
@@ -75,27 +75,26 @@ class MovieFull(MovieBase):
         orm_mode = True
 
 
-class MovieCreate(BaseModel):
-    name: str
-    date: date
-    score: float
-    overview: Optional[str] = None
-    status: MovieStatus
-    budget: float
-    revenue: float
+class MovieCreate(MovieBase):
     country: str
     genres: List[str]
     actors: List[str]
     languages: List[str]
 
+    @validator("date")
+    def validate_date(cls, v: date):
+        if v > date.today() + timedelta(days=365):
+            raise ValueError("Date cannot be more than 1 year in the future.")
+        return v
+
     @validator("score")
-    def validate_score(cls, v):
+    def validate_score(cls, v: float):
         if not (0 <= v <= 100):
             raise ValueError("Score must be between 0 and 100.")
         return v
 
     @validator("budget", "revenue")
-    def validate_non_negative(cls, v):
+    def validate_non_negative(cls, v: float):
         if v < 0:
             raise ValueError("Budget and revenue must be non-negative.")
         return v
@@ -110,6 +109,18 @@ class MovieUpdate(BaseModel):
     budget: Optional[float]
     revenue: Optional[float]
 
+    @validator("score")
+    def validate_score(cls, v: Optional[float]):
+        if v is not None and not (0 <= v <= 100):
+            raise ValueError("Score must be between 0 and 100.")
+        return v
+
+    @validator("budget", "revenue")
+    def validate_non_negative(cls, v: Optional[float]):
+        if v is not None and v < 0:
+            raise ValueError("Budget and revenue must be non-negative.")
+        return v
+
 
 class MoviesListResponse(BaseModel):
     movies: List[MovieShort]
@@ -119,6 +130,7 @@ class MoviesListResponse(BaseModel):
     total_items: int
 
 
+# Aliases for convenience
 MovieListResponseSchema = MoviesListResponse
 MovieDetailSchema = MovieFull
 MovieListItemSchema = MovieShort
