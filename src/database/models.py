@@ -1,15 +1,36 @@
 import datetime
 from enum import Enum
-from typing import Optional
-
-from sqlalchemy import String, Float, Text, DECIMAL, UniqueConstraint, Date, ForeignKey, Table, Column
-from sqlalchemy.orm import DeclarativeBase, mapped_column, Mapped, relationship
+from sqlalchemy import (
+    String,
+    Float,
+    Text,
+    DECIMAL,
+    UniqueConstraint,
+    Date,
+    ForeignKey,
+    Table,
+    Column,
+)
+from sqlalchemy.orm import (
+    DeclarativeBase,
+    mapped_column,
+    Mapped,
+    relationship,
+)
 from sqlalchemy import Enum as SQLAlchemyEnum
+from typing import (
+    Optional,
+    List,
+    Any,
+)
 
 
 class Base(DeclarativeBase):
     @classmethod
-    def default_order_by(cls) -> None:
+    def default_order_by(cls) -> Optional[List[Any]]:
+        """
+        Returns default ordering expressions for the model, or None if none are set.
+        """
         return None
 
 

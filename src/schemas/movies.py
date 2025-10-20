@@ -15,32 +15,36 @@ class Country(BaseModel):
     code: str
     name: Optional[str] = None
 
-    class Config:
-        orm_mode = True
+    model_config = {
+        "from_attributes": True
+    }
 
 
 class Genre(BaseModel):
     id: int
     name: str
 
-    class Config:
-        orm_mode = True
+    model_config = {
+        "from_attributes": True
+    }
 
 
 class Actor(BaseModel):
     id: int
     name: str
 
-    class Config:
-        orm_mode = True
+    model_config = {
+        "from_attributes": True
+    }
 
 
 class Language(BaseModel):
     id: int
     name: str
 
-    class Config:
-        orm_mode = True
+    model_config = {
+        "from_attributes": True
+    }
 
 
 class MovieBase(BaseModel):
@@ -60,8 +64,9 @@ class MovieShort(BaseModel):
     score: float
     overview: Optional[str]
 
-    class Config:
-        orm_mode = True
+    model_config = {
+        "from_attributes": True
+    }
 
 
 class MovieFull(MovieBase):
@@ -71,8 +76,9 @@ class MovieFull(MovieBase):
     actors: List[Actor]
     languages: List[Language]
 
-    class Config:
-        orm_mode = True
+    model_config = {
+        "from_attributes": True
+    }
 
 
 class MovieCreate(MovieBase):
@@ -101,13 +107,18 @@ class MovieCreate(MovieBase):
 
 
 class MovieUpdate(BaseModel):
-    name: Optional[str]
-    date: Optional[date]
-    score: Optional[float]
-    overview: Optional[str]
-    status: Optional[MovieStatus]
-    budget: Optional[float]
-    revenue: Optional[float]
+    name: Optional[str] = Field(None, max_length=255)
+    date: Optional[date] = None
+    score: Optional[float] = None
+    overview: Optional[str] = None
+    status: Optional[MovieStatus] = None
+    budget: Optional[float] = None
+    revenue: Optional[float] = None
+
+    country: Optional[str] = None
+    genres: Optional[List[str]] = None
+    actors: Optional[List[str]] = None
+    languages: Optional[List[str]] = None
 
     @validator("score")
     def validate_score(cls, v: Optional[float]):
@@ -130,7 +141,7 @@ class MoviesListResponse(BaseModel):
     total_items: int
 
 
-# Aliases for convenience
+# aliases for convenience
 MovieListResponseSchema = MoviesListResponse
 MovieDetailSchema = MovieFull
 MovieListItemSchema = MovieShort

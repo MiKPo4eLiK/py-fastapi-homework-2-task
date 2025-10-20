@@ -8,9 +8,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import SQLAlchemyError
 from tqdm import tqdm
 
-from src.config import get_settings
-from src.database import get_db_contextmanager
-from .models import (
+from config import get_settings
+from database import get_db_contextmanager
+from database.models import (
     CountryModel,
     GenreModel,
     ActorModel,
@@ -18,7 +18,7 @@ from .models import (
     ActorsMoviesModel,
     LanguageModel,
     MoviesLanguagesModel,
-    MovieModel
+    MovieModel,
 )
 
 CHUNK_SIZE = 1000
