@@ -17,7 +17,7 @@ app.include_router(movie_router, prefix=f"{api_version_prefix}/theater", tags=["
 
 
 @app.exception_handler(RequestValidationError)
-async def request_validation_exception_handler(request: Request, exc: RequestValidationError):
+async def request_validation_exception_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
     return JSONResponse(
         status_code=400,
         content={"detail": "Invalid input data."}

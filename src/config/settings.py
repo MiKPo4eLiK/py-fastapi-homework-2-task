@@ -41,6 +41,7 @@ class TestingSettings(BaseAppSettings):
             str(self.BASE_DIR / "database" / "seed_data" / "test_data.csv"),
         )
 
+
 def get_settings() -> BaseAppSettings:
     """
     Returns the settings for the project.

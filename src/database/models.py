@@ -73,7 +73,7 @@ MoviesLanguagesModel = Table(
 class GenreModel(Base):
     __tablename__ = "genres"
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    id_: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
 
     movies: Mapped[list["MovieModel"]] = relationship(
@@ -82,14 +82,14 @@ class GenreModel(Base):
         back_populates="genres"
     )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<Genre(name='{self.name}')>"
 
 
 class ActorModel(Base):
     __tablename__ = "actors"
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    id_: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
 
     movies: Mapped[list["MovieModel"]] = relationship(
@@ -98,27 +98,27 @@ class ActorModel(Base):
         back_populates="actors"
     )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<Actor(name='{self.name}')>"
 
 
 class CountryModel(Base):
     __tablename__ = "countries"
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    id_: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     code: Mapped[str] = mapped_column(String(3), unique=True, nullable=False)
     name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
 
     movies: Mapped[list["MovieModel"]] = relationship("MovieModel", back_populates="country")
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<Country(code='{self.code}', name='{self.name}')>"
 
 
 class LanguageModel(Base):
     __tablename__ = "languages"
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    id_: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
 
     movies: Mapped[list["MovieModel"]] = relationship(
@@ -127,14 +127,14 @@ class LanguageModel(Base):
         back_populates="languages"
     )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<Language(name='{self.name}')>"
 
 
 class MovieModel(Base):
     __tablename__ = "movies"
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    id_: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     date: Mapped[datetime.date] = mapped_column(Date, nullable=False)
     score: Mapped[float] = mapped_column(Float, nullable=False)
@@ -171,8 +171,8 @@ class MovieModel(Base):
     )
 
     @classmethod
-    def default_order_by(cls):
+    def default_order_by(cls) -> Optional[List[Any]]:
         return [cls.id.desc()]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<Movie(name='{self.name}', release_date='{self.date}', score={self.score})>"

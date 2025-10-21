@@ -1,13 +1,41 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    Query,
+    status,
+)
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy import func
-from sqlalchemy.orm import selectinload, joinedload
-from datetime import date, timedelta
-from typing import List
+from sqlalchemy.orm import (
+    selectinload,
+    joinedload,
+    DeclarativeMeta,
+)
+from datetime import (
+    date,
+    timedelta,
+)
+from typing import (
+    List,
+    Type,
+)
 from database import get_db
-from database.models import MovieModel, GenreModel, ActorModel, CountryModel, LanguageModel
-from schemas.movies import MovieFull, MovieCreate, MovieUpdate, MoviesListResponse
+from database.models import (
+    MovieModel,
+    GenreModel,
+    ActorModel,
+    CountryModel,
+    LanguageModel,
+)
+from schemas.movies import (
+    MovieFull,
+    MovieCreate,
+    MovieUpdate,
+    MoviesListResponse,
+)
+
 
 router = APIRouter(prefix="/movies", tags=["Movies"])
 
@@ -17,7 +45,7 @@ async def list_movies(
         page: int = Query(1, ge=1),
         per_page: int = Query(10, ge=1, le=20),
         db: AsyncSession = Depends(get_db),
-):
+) -> MoviesListResponse:
     total_items = (await db.execute(select(func.count(MovieModel.id)))).scalar_one()
     total_pages = (total_items + per_page - 1) // per_page if total_items > 0 else 0
 
@@ -59,7 +87,7 @@ async def list_movies(
 
 
 @router.get("/{movie_id}/", response_model=MovieFull)
-async def get_movie(movie_id: int, db: AsyncSession = Depends(get_db)):
+async def get_movie(movie_id: int, db: AsyncSession = Depends(get_db)) -> MovieFull:
     result = await db.execute(
         select(MovieModel)
         .where(MovieModel.id == movie_id)
@@ -78,7 +106,7 @@ async def get_movie(movie_id: int, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/", response_model=MovieFull, status_code=status.HTTP_201_CREATED)
-async def create_movie(movie_data: MovieCreate, db: AsyncSession = Depends(get_db)):
+async def create_movie(movie_data: MovieCreate, db: AsyncSession = Depends(get_db)) -> MovieFull:
     existing = await db.execute(
         select(MovieModel).where(
             MovieModel.name == movie_data.name,
@@ -104,17 +132,21 @@ async def create_movie(movie_data: MovieCreate, db: AsyncSession = Depends(get_d
             db.add(country)
             await db.flush()
 
-    async def get_or_create(model, names: List[str], field="name"):
-        objs = []
+    async def get_or_create(
+        model: Type[DeclarativeMeta],
+        names: List[str],
+        field: str = "name"
+    ) -> list:
+        instances = []
         for name in names:
             res = await db.execute(select(model).where(getattr(model, field) == name))
-            obj = res.scalar_one_or_none()
-            if not obj:
-                obj = model(**{field: name})
-                db.add(obj)
+            instance = res.scalar_one_or_none()
+            if not instance:
+                instance = model(**{field: name})
+                db.add(instance)
                 await db.flush()
-            objs.append(obj)
-        return objs
+            instances.append(instance)
+        return instances
 
     genres = await get_or_create(GenreModel, movie_data.genres)
     actors = await get_or_create(ActorModel, movie_data.actors)
@@ -145,7 +177,7 @@ async def create_movie(movie_data: MovieCreate, db: AsyncSession = Depends(get_d
 
 
 @router.patch("/{movie_id}/", response_model=MovieFull)
-async def update_movie(movie_id: int, data: MovieUpdate, db: AsyncSession = Depends(get_db)):
+async def update_movie(movie_id: int, data: MovieUpdate, db: AsyncSession = Depends(get_db)) -> MovieFull:
     result = await db.execute(
         select(MovieModel)
         .where(MovieModel.id == movie_id)
@@ -163,7 +195,7 @@ async def update_movie(movie_id: int, data: MovieUpdate, db: AsyncSession = Depe
 
     update_data = data.model_dump(exclude_unset=True, exclude_none=True)
 
-    for field in ['country', 'genres', 'actors', 'languages']:
+    for field in ["country", "genres", "actors", "languages"]:
         if field in update_data:
             update_data.pop(field)
 
@@ -184,7 +216,7 @@ async def update_movie(movie_id: int, data: MovieUpdate, db: AsyncSession = Depe
 
 
 @router.delete("/{movie_id}/", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_movie(movie_id: int, db: AsyncSession = Depends(get_db)):
+async def delete_movie(movie_id: int, db: AsyncSession = Depends(get_db)) -> None:
     result = await db.execute(select(MovieModel).where(MovieModel.id == movie_id))
     movie = result.scalar_one_or_none()
     if not movie:

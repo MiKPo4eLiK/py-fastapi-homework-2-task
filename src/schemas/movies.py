@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import date as dt_date, timedelta
 from typing import List, Optional
 from pydantic import BaseModel, Field, validator
 from enum import Enum
@@ -11,45 +11,37 @@ class MovieStatus(str, Enum):
 
 
 class Country(BaseModel):
-    id: int
+    id_: int
     code: str
     name: Optional[str] = None
 
-    model_config = {
-        "from_attributes": True
-    }
+    model_config = {"from_attributes": True}
 
 
 class Genre(BaseModel):
-    id: int
+    id_: int
     name: str
 
-    model_config = {
-        "from_attributes": True
-    }
+    model_config = {"from_attributes": True}
 
 
 class Actor(BaseModel):
-    id: int
+    id_: int
     name: str
 
-    model_config = {
-        "from_attributes": True
-    }
+    model_config = {"from_attributes": True}
 
 
 class Language(BaseModel):
-    id: int
+    id_: int
     name: str
 
-    model_config = {
-        "from_attributes": True
-    }
+    model_config = {"from_attributes": True}
 
 
 class MovieBase(BaseModel):
     name: str = Field(..., max_length=255)
-    date: date
+    release_date: dt_date
     score: float = Field(..., ge=0, le=100)
     overview: Optional[str] = None
     status: MovieStatus
@@ -58,27 +50,23 @@ class MovieBase(BaseModel):
 
 
 class MovieShort(BaseModel):
-    id: int
+    id_: int
     name: str
-    date: date
+    release_date: dt_date
     score: float
     overview: Optional[str]
 
-    model_config = {
-        "from_attributes": True
-    }
+    model_config = {"from_attributes": True}
 
 
 class MovieFull(MovieBase):
-    id: int
+    id_: int
     country: Optional[Country]
     genres: List[Genre]
     actors: List[Actor]
     languages: List[Language]
 
-    model_config = {
-        "from_attributes": True
-    }
+    model_config = {"from_attributes": True}
 
 
 class MovieCreate(MovieBase):
@@ -87,28 +75,31 @@ class MovieCreate(MovieBase):
     actors: List[str]
     languages: List[str]
 
-    @validator("date")
-    def validate_date(cls, v: date):
-        if v > date.today() + timedelta(days=365):
-            raise ValueError("Date cannot be more than 1 year in the future.")
-        return v
+    @classmethod
+    @validator("release_date")
+    def validate_release_date(cls, value: dt_date) -> dt_date:
+        if value > dt_date.today() + timedelta(days=365):
+            raise ValueError("Release date cannot be more than 1 year in the future.")
+        return value
 
+    @classmethod
     @validator("score")
-    def validate_score(cls, v: float):
-        if not (0 <= v <= 100):
+    def validate_score(cls, value: float) -> float:
+        if not (0 <= value <= 100):
             raise ValueError("Score must be between 0 and 100.")
-        return v
+        return value
 
+    @classmethod
     @validator("budget", "revenue")
-    def validate_non_negative(cls, v: float):
-        if v < 0:
+    def validate_non_negative(cls, value: float) -> float:
+        if value < 0:
             raise ValueError("Budget and revenue must be non-negative.")
-        return v
+        return value
 
 
 class MovieUpdate(BaseModel):
     name: Optional[str] = Field(None, max_length=255)
-    date: Optional[date] = None
+    release_date: Optional[dt_date] = None
     score: Optional[float] = None
     overview: Optional[str] = None
     status: Optional[MovieStatus] = None
@@ -120,17 +111,19 @@ class MovieUpdate(BaseModel):
     actors: Optional[List[str]] = None
     languages: Optional[List[str]] = None
 
+    @classmethod
     @validator("score")
-    def validate_score(cls, v: Optional[float]):
-        if v is not None and not (0 <= v <= 100):
+    def validate_score(cls, value: Optional[float]) -> Optional[float]:
+        if value is not None and not (0 <= value <= 100):
             raise ValueError("Score must be between 0 and 100.")
-        return v
+        return value
 
+    @classmethod
     @validator("budget", "revenue")
-    def validate_non_negative(cls, v: Optional[float]):
-        if v is not None and v < 0:
+    def validate_non_negative(cls, value: Optional[float]) -> Optional[float]:
+        if value is not None and value < 0:
             raise ValueError("Budget and revenue must be non-negative.")
-        return v
+        return value
 
 
 class MoviesListResponse(BaseModel):
@@ -141,7 +134,6 @@ class MoviesListResponse(BaseModel):
     total_items: int
 
 
-# aliases for convenience
 MovieListResponseSchema = MoviesListResponse
 MovieDetailSchema = MovieFull
 MovieListItemSchema = MovieShort
