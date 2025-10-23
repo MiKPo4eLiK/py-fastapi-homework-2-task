@@ -1,4 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    status,
+    Query,
+)
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, desc
 from sqlalchemy.orm import joinedload
@@ -113,8 +119,10 @@ async def create_movie(movie_data: MovieCreate, db: AsyncSession = Depends(get_d
     if await db.scalar(existing_stmt):
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail=f"A movie with the name '{movie_data.name}' and release date '{
-                movie_data.release_date.isoformat()}' already exists.",
+            detail=(
+                f"A movie with the name '{movie_data.name}' and release date "
+                f"'{movie_data.release_date}' already exists."
+            ),
         )
 
     async def get_or_create_related_models(
